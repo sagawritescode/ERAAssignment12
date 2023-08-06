@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, random_split
 from torchmetrics import Accuracy
 from torchvision import transforms
 from torchvision.datasets import CIFAR10
-from dataloader import CustomResnetTransforms
+from ERAAssignment12.dataloader import CustomResnetTransforms
 
 def getNormalisationLayer(normalisation_method, output_channel, groups=0):
       if normalisation_method == 'bn':
