@@ -1,3 +1,24 @@
+import albumentations as A 
+from albumentations.pytorch import ToTensorV2 
+import os
+
+import torch
+from pytorch_lightning import LightningModule, Trainer
+from torch import nn
+from torch.nn import functional as F
+from torch.utils.data import DataLoader, random_split
+from torchmetrics import Accuracy
+from torchvision import transforms
+from torchvision.datasets import CIFAR10
+
+def getNormalisationLayer(normalisation_method, output_channel, groups=0):
+      if normalisation_method == 'bn':
+          return nn.BatchNorm2d(output_channel)
+      elif normalisation_method == 'gn':
+          return nn.GroupNorm(groups, output_channel)
+      elif normalisation_method == 'ln':
+          return nn.GroupNorm(1, output_channel)
+
 class LitCustomResNet(LightningModule):
     def __init__(self, data_dir=PATH_DATASETS, hidden_size=16, learning_rate=2e-4, criterion=nn.CrossEntropyLoss(reduction="sum"), normalisation_method="bn", groups=0, means=[0.4914, 0.4822, 0.4465], stds=[0.2470, 0.2435, 0.2616]):
         super().__init__()
