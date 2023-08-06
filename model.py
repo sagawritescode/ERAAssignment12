@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader, random_split
 from torchmetrics import Accuracy
 from torchvision import transforms
 from torchvision.datasets import CIFAR10
+from dataloader import CustomResnetTransforms
 
 def getNormalisationLayer(normalisation_method, output_channel, groups=0):
       if normalisation_method == 'bn':
@@ -20,7 +21,7 @@ def getNormalisationLayer(normalisation_method, output_channel, groups=0):
           return nn.GroupNorm(1, output_channel)
 
 class LitCustomResNet(LightningModule):
-    def __init__(self, data_dir=PATH_DATASETS, hidden_size=16, learning_rate=2e-4, criterion=nn.CrossEntropyLoss(reduction="sum"), normalisation_method="bn", groups=0, means=[0.4914, 0.4822, 0.4465], stds=[0.2470, 0.2435, 0.2616]):
+    def __init__(self, data_dir=".", hidden_size=16, learning_rate=2e-4, criterion=nn.CrossEntropyLoss(reduction="sum"), normalisation_method="bn", groups=0, means=[0.4914, 0.4822, 0.4465], stds=[0.2470, 0.2435, 0.2616]):
         super().__init__()
 
         self.data_dir = data_dir
