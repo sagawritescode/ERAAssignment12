@@ -22,7 +22,7 @@ def getNormalisationLayer(normalisation_method, output_channel, groups=0):
           return nn.GroupNorm(1, output_channel)
 
 class LitCustomResNet(LightningModule):
-    def __init__(self, data_dir=".", hidden_size=16, learning_rate=2e-4, criterion=nn.CrossEntropyLoss(reduction="sum"), normalisation_method="bn", groups=0, means=[0.4914, 0.4822, 0.4465], stds=[0.2470, 0.2435, 0.2616]):
+    def __init__(self, data_dir=".", hidden_size=16, learning_rate=2e-4, criterion=nn.CrossEntropyLoss(reduction="sum"), normalisation_method="bn", groups=0, means=[0.4914, 0.4822, 0.4465], stds=[0.2470, 0.2435, 0.2616], batch_size=64):
         super().__init__()
 
         self.data_dir = data_dir
@@ -101,6 +101,7 @@ class LitCustomResNet(LightningModule):
                                 std=[1 / std for std in stds]),
             transforms.ToPILImage()
         ])
+        self.batch_size = batch_size
 
 
     def forward(self, x):
@@ -167,7 +168,7 @@ class LitCustomResNet(LightningModule):
             self.cifar_test = Cifar10SearchDataset(self.data_dir, train=False, transform=self.test_transforms)
 
     def train_dataloader(self):
-        return DataLoader(self.cifar_train, batch_size=BATCH_SIZE, num_workers=os.cpu_count())
+        return DataLoader(self.cifar_train, batch_size=self.batch_size, num_workers=os.cpu_count())
 
     def test_dataloader(self):
-        return DataLoader(self.cifar_test, batch_size=BATCH_SIZE, num_workers=os.cpu_count())
+        return DataLoader(self.cifar_test, batch_size=self.batch_size, num_workers=os.cpu_count())
