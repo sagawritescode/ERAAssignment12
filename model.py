@@ -94,6 +94,7 @@ class LitCustomResNet(LightningModule):
         self.stds = stds
         self.train_transforms = CustomResnetTransforms.train_transforms(means, stds)
         self.test_transforms = CustomResnetTransforms.test_transforms(means, stds)
+        self.train_accuracy = Accuracy("multiclass", num_classes=10)  
 
         # Create the reverse transformation pipeline
         self.reverse_transform = transforms.Compose([
@@ -121,8 +122,11 @@ class LitCustomResNet(LightningModule):
         # print("printing shape: ", x.shape)
         # print("printing shape: ", x.shape, y)
         logits = self(x)
+        preds = torch.argmax(logits, dim=1)
+        self.test_accuracy(preds, y)  
         loss = self.criterion(logits, y)
         self.log("training_loss", loss, prog_bar=True)
+        self.log("training_acc", self.test_accuracy, prog_bar=True)  
         return loss
 
     def configure_optimizers(self):
