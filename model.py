@@ -94,7 +94,7 @@ class LitCustomResNet(LightningModule):
         ])
         self.batch_size = batch_size
 
-def forward(self, x):
+    def forward(self, x):
         x = self.prep_layer(x)
         x = self.convblock1(x)
         x = x + self.res_block1(x)
@@ -105,17 +105,18 @@ def forward(self, x):
         x = x.view(x.size(0), -1)
         x = self.output_linear(x)
         return x
+
     def training_step(self, batch, batch_idx):
         x, y = batch
-        # print("printing shape: ", x.shape)
-        # print("printing shape: ", x.shape, y)
         logits = self(x)
         loss = self.criterion(logits, y)
         self.log("training_loss", loss, prog_bar=True)
         return loss
+
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         return optimizer
+
     def test_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
@@ -136,10 +137,12 @@ def forward(self, x):
             image_tensor, correct, wrong = misclassified_image_tuple
             image_pil = self.reverse_transform(image_tensor.cpu())
             image_pil.save(f'{self.data_dir}/misclassified_images/misclassified_image_{self.classes[correct]}_{self.classes[wrong]}.png')
+
     def prepare_data(self):
       # download
       Cifar10SearchDataset(self.data_dir, train=True, download=True)
       Cifar10SearchDataset(self.data_dir, train=False, download=True)
+      
     def setup(self, stage=None):
         # Assign train/val datasets for use in dataloaders
         if stage == "fit" or stage is None:
