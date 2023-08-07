@@ -6,6 +6,7 @@ The objective of this assignment is to reuse the CustomResNet model and build it
 
 No mentions of accuracy in the logs. Pasting graph pics below
 
+```
 INFO:pytorch_lightning.accelerators.cuda:LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 INFO:pytorch_lightning.callbacks.model_summary:
    | Name           | Type               | Params
@@ -27,7 +28,7 @@ INFO:pytorch_lightning.callbacks.model_summary:
 6.6 M     Total params
 26.292    Total estimated model params size (MB)
 Training: 0it [00:00, ?it/s]
-
+```
 
 ![Training Loss](https://github.com/sagawritescode/ERAAssignment12/assets/45040561/90017128-9c83-47a4-9222-4bf340933002)
 
