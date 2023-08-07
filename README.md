@@ -1,4 +1,4 @@
-#README
+# README
 
 The objective of this assignment is to reuse the CustomResNet model and build it using pytorch lightning. This model was used to train CIFAR10 dataset  
 
@@ -35,3 +35,5 @@ Training: 0it [00:00, ?it/s]
 
 Misclassified images: 
 ![Screenshot 2023-08-07 at 2 14 05 PM](https://github.com/sagawritescode/ERAAssignment12/assets/45040561/b9cffe58-0370-438c-a89d-83a3ea9e0007)
+
+Spaces [link](https://huggingface.co/spaces/samundarcodes101/ResnetLightning2/blob/main/app.py)
