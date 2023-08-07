@@ -24,7 +24,7 @@ def getNormalisationLayer(normalisation_method, output_channel, groups=0):
           return nn.GroupNorm(1, output_channel)
 
 class LitCustomResNet(LightningModule):
-    def __init__(self, data_dir=".", hidden_size=16, learning_rate=2e-4, criterion=nn.CrossEntropyLoss(reduction="sum"), normalisation_method="bn", groups=0, means=[0.4914, 0.4822, 0.4465], stds=[0.2470, 0.2435, 0.2616], batch_size=64):
+    def __init__(self, data_dir=".", hidden_size=16, learning_rate=2e-4, criterion=nn.CrossEntropyLoss(reduction="sum"), normalisation_method="bn", groups=0, means=[0.4914, 0.4822, 0.4465], stds=[0.2470, 0.2435, 0.2616], batch_size=64, max_epochs=24):
         super().__init__()
 
         self.data_dir = data_dir
@@ -96,7 +96,8 @@ class LitCustomResNet(LightningModule):
         self.stds = stds
         self.train_transforms = CustomResnetTransforms.train_transforms(means, stds)
         self.test_transforms = CustomResnetTransforms.test_transforms(means, stds)
-        self.train_accuracy = Accuracy("multiclass", num_classes=10)  
+        self.train_accuracy = Accuracy("multiclass", num_classes=10) 
+        self.max_epochs = max_epochs
 
         # Create the reverse transformation pipeline
         self.reverse_transform = transforms.Compose([
