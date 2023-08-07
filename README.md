@@ -2,7 +2,7 @@
 
 The objective of this assignment is to reuse the CustomResNet model and build it using pytorch lightning. This model was used to train CIFAR10 dataset  
 
-###Training logs and diagrams: 
+### Training logs and diagrams: 
 
 No mentions of accuracy in the logs. Pasting graph pics below
 
