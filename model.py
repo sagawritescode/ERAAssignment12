@@ -181,6 +181,8 @@ class LitCustomResNet(LightningModule):
 
 
 class LitCustomResNetWithOneCycleLR(LightningModule):
+    def __init__(self, data_dir=".", hidden_size=16, learning_rate=2e-4, criterion=nn.CrossEntropyLoss(reduction="sum"), normalisation_method="bn", groups=0, means=[0.4914, 0.4822, 0.4465], stds=[0.2470, 0.2435, 0.2616], batch_size=64):
+        super().__init__(def __init__(data_dir=data_dir, hidden_size=hidden_size, learning_rate=learning_rate, criterion=criterion, normalisation_method="normalisation_method", groups=groups, means=means, stds=stds, batch_size=batch_size)
     def configure_optimizers(self):
         optimizer = optim.Adam(self.parameters(), lr=1e-7, weight_decay=1e-2)
         lr_finder = LRFinder(model, optimizer, criterion)
