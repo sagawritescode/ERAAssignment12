@@ -133,7 +133,7 @@ class LitCustomResNet(LightningModule):
 
     def configure_optimizers(self):
         optimizer = optim.Adam(self.parameters(), lr=1e-7, weight_decay=1e-2)
-        lr_finder = LRFinder(self, optimizer, criterion)
+        lr_finder = LRFinder(self, optimizer, self.criterion)
         lr_finder.range_test(data_loader, end_lr=0.1, num_iter=100, step_mode='exp')
         _, best_lr = lr_finder.plot()
         lr_finder.reset()
