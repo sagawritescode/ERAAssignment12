@@ -123,10 +123,10 @@ class LitCustomResNet(LightningModule):
         # print("printing shape: ", x.shape, y)
         logits = self(x)
         preds = torch.argmax(logits, dim=1)
-        self.test_accuracy(preds, y)  
+        self.train_accuracy(preds, y)  
         loss = self.criterion(logits, y)
         self.log("training_loss", loss, prog_bar=True)
-        self.log("training_acc", self.test_accuracy, prog_bar=True)  
+        self.log("training_acc", self.train_accuracy, prog_bar=True)  
         return loss
 
     def configure_optimizers(self):
