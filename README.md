@@ -38,3 +38,9 @@ Misclassified images:
 ![Screenshot 2023-08-07 at 2 14 05 PM](https://github.com/sagawritescode/ERAAssignment12/assets/45040561/b9cffe58-0370-438c-a89d-83a3ea9e0007)
 
 Spaces [link](https://huggingface.co/spaces/samundarcodes101/ResnetLightning2/blob/main/app.py)
+
+### Notes:
+
+Final Submission: [link](https://github.com/sagawritescode/ERAAssignment12/blob/main/ERA_V1_Assignment_12.ipynb)
+
+Tried with one cycle lr: [link](https://github.com/sagawritescode/ERAAssignment12/blob/main/ERA_V1_Assignment_12_1cycleLR.ipynb) but the test accuracy was lesser. Hence used the above model
