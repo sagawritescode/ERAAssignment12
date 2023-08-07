@@ -132,8 +132,29 @@ class LitCustomResNet(LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
-        return optimizer
+        optimizer = optim.Adam(self.parameters(), lr=1e-7, weight_decay=1e-2)
+        lr_finder = LRFinder(model, optimizer, criterion)
+        lr_finder.range_test(data_loader, end_lr=0.1, num_iter=100, step_mode='exp')
+        _, best_lr = lr_finder.plot()
+        lr_finder.reset()
+        scheduler = optim.lr_scheduler.OneCycleLR(
+            optimizer,
+            max_lr=best_lr,
+            steps_per_epoch=len(self.dataset.train_loader),
+            epochs=self.max_epochs,
+            pct_start=5/self.max_epochs,
+            div_factor=100,
+            three_phase=False,
+            final_div_factor=100,
+            anneal_strategy='linear'
+        )
+        return {
+            'optimizer': optimizer,
+            'lr_scheduler': {
+                "scheduler": scheduler,
+                "interval": "step",
+            }
+        }
 
 
     def test_step(self, batch, batch_idx):
