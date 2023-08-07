@@ -1,7 +1,6 @@
 import albumentations as A 
 from albumentations.pytorch import ToTensorV2 
 import os
-
 import torch
 from pytorch_lightning import LightningModule, Trainer
 from torch import nn
@@ -12,9 +11,6 @@ from torchvision import transforms
 from torchvision.datasets import CIFAR10
 from ERAAssignment12.dataloader import Cifar10SearchDataset
 from ERAAssignment12.transforms import CustomResnetTransforms
-from torch_lr_finder import LRFinder
-from torch import optim
-
 def getNormalisationLayer(normalisation_method, output_channel, groups=0):
       if normalisation_method == 'bn':
           return nn.BatchNorm2d(output_channel)
@@ -24,7 +20,7 @@ def getNormalisationLayer(normalisation_method, output_channel, groups=0):
           return nn.GroupNorm(1, output_channel)
 
 class LitCustomResNet(LightningModule):
-    def __init__(self, data_dir=".", hidden_size=16, learning_rate=2e-4, criterion=nn.CrossEntropyLoss(reduction="sum"), normalisation_method="bn", groups=0, means=[0.4914, 0.4822, 0.4465], stds=[0.2470, 0.2435, 0.2616], batch_size=64, max_epochs=24):
+    def __init__(self, data_dir=".", hidden_size=16, learning_rate=2e-4, criterion=nn.CrossEntropyLoss(reduction="sum"), normalisation_method="bn", groups=0, means=[0.4914, 0.4822, 0.4465], stds=[0.2470, 0.2435, 0.2616], batch_size=64):
         super().__init__()
 
         self.data_dir = data_dir
@@ -42,7 +38,6 @@ class LitCustomResNet(LightningModule):
             getNormalisationLayer(normalisation_method, 64, groups),
             nn.ReLU(),
         ) # output_size = 32
-
         # Layer1
         self.convblock1 = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(3, 3), padding=1, bias=False),
@@ -50,7 +45,6 @@ class LitCustomResNet(LightningModule):
             getNormalisationLayer(normalisation_method, 128, groups),
             nn.ReLU(),
         ) # output_size = 16
-
         self.res_block1 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=128, kernel_size=(3, 3), padding=1, bias=False),
             getNormalisationLayer(normalisation_method, 128, groups),
@@ -59,7 +53,6 @@ class LitCustomResNet(LightningModule):
             getNormalisationLayer(normalisation_method, 128, groups),
             nn.ReLU(),
         )
-
         # Layer2
         self.layer2 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3, 3), padding=1, bias=False),
@@ -67,14 +60,12 @@ class LitCustomResNet(LightningModule):
             getNormalisationLayer(normalisation_method, 256, groups),
             nn.ReLU(),
         ) # output_size = 8
-
         self.convblock2 = nn.Sequential(
             nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(3, 3), padding=1, bias=False),
             nn.MaxPool2d(2,2),
             getNormalisationLayer(normalisation_method, 512, groups),
             nn.ReLU(),
         ) # output_size = 4
-
         # ResBlock2 todo: make sure to add as different class as specified in description
         self.res_block2 = nn.Sequential(
             nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3, 3), padding=1, bias=False),
@@ -84,7 +75,6 @@ class LitCustomResNet(LightningModule):
             getNormalisationLayer(normalisation_method, 512, groups),
             nn.ReLU(),
         ) # output_size = 4
-
         self.maxPool2 = nn.MaxPool2d(4, 4) # output_size = 1
         self.output_linear = nn.Linear(512, 10, bias=False)
         self.accuracy = Accuracy("multiclass", num_classes=10)
@@ -96,9 +86,6 @@ class LitCustomResNet(LightningModule):
         self.stds = stds
         self.train_transforms = CustomResnetTransforms.train_transforms(means, stds)
         self.test_transforms = CustomResnetTransforms.test_transforms(means, stds)
-        self.train_accuracy = Accuracy("multiclass", num_classes=10) 
-        self.max_epochs = max_epochs
-
         # Create the reverse transformation pipeline
         self.reverse_transform = transforms.Compose([
             transforms.Normalize(mean=[-mean / std for mean, std in zip(means, stds)],
@@ -107,8 +94,7 @@ class LitCustomResNet(LightningModule):
         ])
         self.batch_size = batch_size
 
-
-    def forward(self, x):
+def forward(self, x):
         x = self.prep_layer(x)
         x = self.convblock1(x)
         x = x + self.res_block1(x)
@@ -119,45 +105,17 @@ class LitCustomResNet(LightningModule):
         x = x.view(x.size(0), -1)
         x = self.output_linear(x)
         return x
-
     def training_step(self, batch, batch_idx):
         x, y = batch
         # print("printing shape: ", x.shape)
         # print("printing shape: ", x.shape, y)
         logits = self(x)
-        preds = torch.argmax(logits, dim=1)
-        self.train_accuracy(preds, y)  
         loss = self.criterion(logits, y)
         self.log("training_loss", loss, prog_bar=True)
-        self.log("training_acc", self.train_accuracy, prog_bar=True)  
         return loss
-
     def configure_optimizers(self):
-        optimizer = optim.Adam(self.parameters(), lr=1e-7, weight_decay=1e-2)
-        lr_finder = LRFinder(self, optimizer, self.criterion)
-        lr_finder.range_test(self.train_dataloader(), end_lr=0.1, num_iter=100, step_mode='exp')
-        _, best_lr = lr_finder.plot()
-        lr_finder.reset()
-        scheduler = optim.lr_scheduler.OneCycleLR(
-            optimizer,
-            max_lr=best_lr,
-            steps_per_epoch=len(self.train_dataloader()),
-            epochs=self.max_epochs,
-            pct_start=5/self.max_epochs,
-            div_factor=100,
-            three_phase=False,
-            final_div_factor=100,
-            anneal_strategy='linear'
-        )
-        return {
-            'optimizer': optimizer,
-            'lr_scheduler': {
-                "scheduler": scheduler,
-                "interval": "step",
-            }
-        }
-
-
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        return optimizer
     def test_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
@@ -178,19 +136,15 @@ class LitCustomResNet(LightningModule):
             image_tensor, correct, wrong = misclassified_image_tuple
             image_pil = self.reverse_transform(image_tensor.cpu())
             image_pil.save(f'{self.data_dir}/misclassified_images/misclassified_image_{self.classes[correct]}_{self.classes[wrong]}.png')
-
     def prepare_data(self):
       # download
       Cifar10SearchDataset(self.data_dir, train=True, download=True)
       Cifar10SearchDataset(self.data_dir, train=False, download=True)
-
     def setup(self, stage=None):
-
         # Assign train/val datasets for use in dataloaders
         if stage == "fit" or stage is None:
             self.cifar_train = Cifar10SearchDataset(self.data_dir, train=True, transform=self.train_transforms)
             
-
         # Assign test dataset for use in dataloader(s)
         if stage == "test" or stage is None:
             self.cifar_test = Cifar10SearchDataset(self.data_dir, train=False, transform=self.test_transforms)
@@ -201,32 +155,3 @@ class LitCustomResNet(LightningModule):
     def test_dataloader(self):
         return DataLoader(self.cifar_test, batch_size=self.batch_size, num_workers=os.cpu_count())
 
-
-class LitCustomResNetWithOneCycleLR(LightningModule):
-    def __init__(self, data_dir=".", hidden_size=16, learning_rate=2e-4, criterion=nn.CrossEntropyLoss(reduction="sum"), normalisation_method="bn", groups=0, means=[0.4914, 0.4822, 0.4465], stds=[0.2470, 0.2435, 0.2616], batch_size=64):
-        super().__init__(data_dir=data_dir, hidden_size=hidden_size, learning_rate=learning_rate, criterion=criterion, normalisation_method="normalisation_method", groups=groups, means=means, stds=stds, batch_size=batch_size)
-    def configure_optimizers(self):
-        optimizer = optim.Adam(self.parameters(), lr=1e-7, weight_decay=1e-2)
-        lr_finder = LRFinder(model, optimizer, criterion)
-        lr_finder.range_test(data_loader, end_lr=0.1, num_iter=100, step_mode='exp')
-        _, best_lr = lr_finder.plot()
-        lr_finder.reset()
-        scheduler = optim.lr_scheduler.OneCycleLR(
-            optimizer,
-            max_lr=best_lr,
-            steps_per_epoch=len(self.dataset.train_loader),
-            epochs=self.max_epochs,
-            pct_start=5/self.max_epochs,
-            div_factor=100,
-            three_phase=False,
-            final_div_factor=100,
-            anneal_strategy='linear'
-        )
-        return {
-            'optimizer': optimizer,
-            'lr_scheduler': {
-                "scheduler": scheduler,
-                "interval": "step",
-            }
-        }
-      
